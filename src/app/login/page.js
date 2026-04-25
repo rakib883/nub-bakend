@@ -23,8 +23,15 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (data.success) {
+        // ✅ LocalStorage-e user data (email shoho) set kora holo
+        localStorage.setItem("bbb", JSON.stringify(data)); 
+
         toast.success("Login Successful! 🚀", { id: loadingToast });
-        router.push('/dashboard'); // Dashboard-e niye jabe
+        
+        // Ektu deri kore redirect kora jate toast dekha jay
+        setTimeout(() => {
+          router.push('/dashboard');
+        }, 1000);
       } else {
         toast.error(data.message || "Login failed! ❌", { id: loadingToast });
       }
@@ -48,7 +55,7 @@ export default function LoginPage() {
 
         <form className="space-y-6" onSubmit={handleLogin}>
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase text-gray-500 tracking-widest ml-1 text-black">Email</label>
+            <label className="text-xs font-bold uppercase text-gray-500 tracking-widest ml-1">Email</label>
             <div className="relative">
               <FaEnvelope className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
               <input 
@@ -63,7 +70,7 @@ export default function LoginPage() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase text-gray-500 tracking-widest ml-1 text-black">Password</label>
+            <label className="text-xs font-bold uppercase text-gray-500 tracking-widest ml-1">Password</label>
             <div className="relative">
               <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
               <input 

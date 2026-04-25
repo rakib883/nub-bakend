@@ -16,14 +16,42 @@ const RegisterSchema = new mongoose.Schema(
     role: {
       type: String,
       required: true,
-      // Frontend-er lowercase value-er sathe match kora hoyeche
       enum: ["admin", "mgmt", "accounts", "hr", "instructor"],
       default: "admin",
+    },
+
+    // --- Ekhon egulo Database-e 'null' hoye joma hobe ---
+    name: {
+      type: String,
+      default: null, 
+    },
+    profilePicture: {
+      type: String,
+      default: null, 
+    },
+    education: {
+      type: String,
+      default: null,
+    },
+    experience: {
+      type: String,
+      default: null,
+    },
+    course: {
+      type: String,
+      default: null,
+    },
+    lastEducation: {
+      type: String,
+      default: null,
+    },
+    summary: {
+      type: String,
+      default: null,
     },
   },
   { timestamps: true }
 );
 
-// Model export (Next.js cache friendly)
 const Register = mongoose.models.Register || mongoose.model("Register", RegisterSchema);
 export default Register;

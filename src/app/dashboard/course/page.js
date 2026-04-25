@@ -54,7 +54,7 @@ export default function CoursePage() {
     const toastId = toast.loading("Uploading course to database... ⏳");
 
     try {
-      const res = await fetch('https://nub-bakend.vercel.app/api/all-course', {
+      const res = await fetch('/api/add-course', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),

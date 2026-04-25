@@ -20,11 +20,18 @@ export async function POST(req) {
 
     // ২. Notun User Save kora
     const newUser = await Register.create({
-      email,
-      password, // Note: Real project-e ekhane bcrypt use kora bhalo
-      role,
+      email: email,
+      password: password,
+      role: role,
+      // ✅ Egulo explicitly null pathate hobe jate DB-te field gulo toiri hoy
+      name: null,
+      profilePicture: null,
+      education: null,
+      experience: null,
+      course: null,
+      lastEducation: null,
+      summary: null,
     });
-
     return Response.json({
       success: true,
       message: "User saved successfully! 🚀",

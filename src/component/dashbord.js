@@ -3,6 +3,7 @@ import { LuCalendarDays } from "react-icons/lu";
 
 // Stat Card Component
 const StatCard = ({ title, count, icon: Icon, color }) => (
+  
   <div className="p-6 rounded-2xl shadow-sm border border-gray-100 bg-white flex items-center justify-between">
     <div>
       <p className="text-sm text-gray-500 font-medium mb-1">{title}</p>

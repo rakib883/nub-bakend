@@ -1,4 +1,3 @@
-
 import { cookies } from "next/headers";
 import { connect } from "@/lib/db";
 import Register from "@/models/Register";
@@ -14,22 +13,29 @@ export async function POST(req) {
       return Response.json({ success: false, message: "Invalid credentials! ❌" }, { status: 401 });
     }
 
-    // Direct Cookie Set (No process.env)
+    // Direct Cookie Set
     const cookieStore = await cookies();
     cookieStore.set("isLoggedIn", "true", {
-      httpOnly: true, // Security-r jonno jate JS diye keu hack na korte pare
-      secure: false,  // Localhost-e false rakhlei kaj korbe
-      maxAge: 60 * 60 * 24, // ১ diner jonno login thakbe
+      httpOnly: true, 
+      secure: false,  
+      maxAge: 60 * 60 * 24, 
       path: "/",
     });
 
-    return Response.json({ success: true, message: "Login Successful! 🚀" });
+    // ✅ Ekhane success response er sathe user email ta pathiye dilam
+    return Response.json({ 
+      success: true, 
+      message: "Login Successful! 🚀",
+      user: {
+        email: user.email,
+        // name: user.name // Jodi database e name thake shetao dite paro
+      }
+    });
 
   } catch (error) {
     return Response.json({ success: false, message: error.message }, { status: 500 });
   }
 }
-
 
 
 
