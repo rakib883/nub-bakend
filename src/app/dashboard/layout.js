@@ -11,7 +11,8 @@ import {
   FaRightFromBracket, 
   FaChevronLeft, 
   FaChevronRight, 
-  FaCirclePlus 
+  FaCirclePlus,
+  FaGraduationCap
 } from "react-icons/fa6";
 
 export default function DashboardLayout({ children }) {
@@ -52,6 +53,7 @@ export default function DashboardLayout({ children }) {
 
   const menuItems = [
     { name: 'Dashboard', icon: <FaChartLine />, path: '/dashboard' },
+    { name: 'Course', icon: <FaGraduationCap />, path: '/dashboard/course' },
     { name: 'Add Student', icon: <FaUserPlus />, path: '/dashboard/add-student' },
     { name: 'Student History', icon: <FaClockRotateLeft />, path: '/dashboard/history' },
     { name: 'Instructors', icon: <FaChalkboardUser />, path: '/dashboard/instructors' },
