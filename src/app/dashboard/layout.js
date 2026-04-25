@@ -94,7 +94,7 @@ export default function DashboardLayout({ children }) {
     { name: 'Course', icon: <FaGraduationCap />, path: '/dashboard/course' },
     { name: 'Add Student', icon: <FaUserPlus />, path: '/dashboard/add-student' },
     { name: 'Student History', icon: <FaClockRotateLeft />, path: '/dashboard/student-history' },
-    { name: 'Instructors', icon: <FaChalkboardUser />, path: '/dashboard/instructors' },
+    { name: 'employee', icon: <FaChalkboardUser />, path: '/dashboard/employee' },
     { name: 'Add User', icon: <FaCirclePlus />, path: '/dashboard/add-user' },
   ];
 
