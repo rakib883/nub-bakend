@@ -15,7 +15,8 @@ import {
   FaGraduationCap,
  FaUserCircle,
   FaGear,
-  FaShieldHalved
+  FaShieldHalved,
+  FaBlog
 } from "react-icons/fa6";
 import Link from 'next/link';
 
@@ -96,6 +97,7 @@ export default function DashboardLayout({ children }) {
     { name: 'Student History', icon: <FaClockRotateLeft />, path: '/dashboard/student-history' },
     { name: 'employee', icon: <FaChalkboardUser />, path: '/dashboard/employee' },
     { name: 'Add User', icon: <FaCirclePlus />, path: '/dashboard/add-user' },
+    { name: 'Add/remove blog', icon: < FaBlog />, path: '/dashboard/add-blog' },
   ];
 
   return (
