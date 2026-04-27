@@ -10,7 +10,7 @@ export default function EmployeeList() {
 
   const fetchEmployees = async () => {
     try {
-      const res = await fetch("http://localhost:3000/api/all-user");
+      const res = await fetch("/api/all-user");
       const result = await res.json();
       if (result.success) {
         setEmployees(result.data);

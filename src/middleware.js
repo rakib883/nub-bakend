@@ -45,7 +45,7 @@ export function middleware(request) {
   const isLoggedIn = request.cookies.get('isLoggedIn')?.value;
 
   if (!isLoggedIn && pathname.startsWith('/dashboard')) {
-    return NextResponse.redirect(new URL('/login', request.url));
+    return NextResponse.redirect(new URL('/', request.url));
   }
 
   if (isLoggedIn && pathname === '/login') {
