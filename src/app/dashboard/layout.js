@@ -17,7 +17,7 @@ import {
   FaGear,
   FaShieldHalved,
   FaBlog,
-  FaUserPlus
+
 } from "react-icons/fa6";
 import Link from 'next/link';
 
@@ -99,7 +99,7 @@ export default function DashboardLayout({ children }) {
     { name: 'employee', icon: <FaChalkboardUser />, path: '/dashboard/employee' },
     { name: 'Add User', icon: <FaCirclePlus />, path: '/dashboard/add-user' },
     { name: 'Add/remove blog', icon: < FaBlog />, path: '/dashboard/add-blog' },
-    { name: 'Add/remove notice', icon: <FaUserPlus />, path: '/dashboard/add-notice' },
+    { name: 'Add/remove notice', icon: <FaBlog  />, path: '/dashboard/add-notice' },
   ];
 
   return (
