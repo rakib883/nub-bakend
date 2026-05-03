@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react'; // 👈 useEffect add kora hoyeche
+import React, { useState, useEffect } from 'react';
 import { 
   FaBook, FaUserTie, FaClock, FaTag, FaUsers, 
   FaCirclePlus, FaImage, FaFileLines, FaLink, 
@@ -9,12 +9,61 @@ import toast, { Toaster } from 'react-hot-toast';
 
 export default function CoursePage() {
   const [courses, setCourses] = useState([]);
-  const [loading, setLoading] = useState(true); // 👈 loading state lagbe
+  const [loading, setLoading] = useState(true);
+  const [userEmail, setUserEmail] = useState("");
+  const [userData, setUserData] = useState(null);
 
-  // --- 1. Fetch Function ---
+  const [formData, setFormData] = useState({
+    courseName: '', price: '', description: '', instructorName: '',
+    duration: '3 Months', status: 'Upcoming', seats: '',
+    instructorPicLink: '', thumbnailLink: '', upcomingDate: ''
+  });
+
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingCourse, setEditingCourse] = useState(null);
+
+  // --- 1. Local Storage theke User Data Get kora ---
+  useEffect(() => {
+    const savedUser = localStorage.getItem("user");
+    if (savedUser) {
+      try {
+        const userObj = JSON.parse(savedUser);
+        const email = userObj.user?.email || userObj.email;
+        setUserEmail(email);
+      } catch (error) {
+        console.error("Parse error", error);
+      }
+    }
+  }, []);
+
+  // --- 2. User Role check korar jonno fetch kora ---
+  useEffect(() => {
+    if (!userEmail) return;
+
+    const fetchMatchedUser = async () => {
+      try {
+        const response = await fetch("/api/all-user");
+        const result = await response.json();
+
+        if (result.success && Array.isArray(result.data)) {
+          const matchedUser = result.data.find((user) => user.email === userEmail);
+          if (matchedUser) {
+            setUserData(matchedUser);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    };
+
+    fetchMatchedUser();
+  }, [userEmail]);
+
+  // --- 3. Shob Course fetch kora ---
   const fetchCourses = async () => {
+    setLoading(true);
     try {
-      const res = await fetch('/api/all-course'); 
+      const res = await fetch('/api/all-course');
       const result = await res.json();
       if (result.success) {
         setCourses(result.data);
@@ -27,20 +76,11 @@ export default function CoursePage() {
     }
   };
 
-  // 👈 2. Page load holei data fetch hobe
   useEffect(() => {
     fetchCourses();
   }, []);
 
-  const [formData, setFormData] = useState({
-    courseName: '', price: '', description: '', instructorName: '',
-    duration: '3 Months', status: 'Upcoming', seats: '',
-    instructorPicLink: '', thumbnailLink: '', upcomingDate: ''
-  });
-
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingCourse, setEditingCourse] = useState(null);
-
+  // --- 4. Event Handlers ---
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -51,8 +91,9 @@ export default function CoursePage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const toastId = toast.loading("Uploading course to database... ⏳");
+    if (userData?.role !== 'admin') return toast.error("Only admins can add courses!");
 
+    const toastId = toast.loading("Uploading course... ⏳");
     try {
       const res = await fetch('/api/add-course', {
         method: 'POST',
@@ -61,19 +102,15 @@ export default function CoursePage() {
       });
 
       const data = await res.json();
-
       if (data.success) {
         toast.success("Course Uploaded Successfully! 🚀", { id: toastId });
-        
-        // 👈 3. Data submit houwar por refresh kora
-        fetchCourses(); 
-
+        fetchCourses();
         setFormData({
           courseName: '', price: '', description: '', instructorName: '',
           duration: '3 Months', status: 'Upcoming', seats: '',
           instructorPicLink: '', thumbnailLink: '', upcomingDate: ''
         });
-        e.target.reset(); 
+        e.target.reset();
       } else {
         toast.error(data.message || "Something went wrong!", { id: toastId });
       }
@@ -84,6 +121,7 @@ export default function CoursePage() {
 
   const handleUpdate = (e) => {
     e.preventDefault();
+    // Ekhane apnar update API call hobe
     toast.success("Course Info Updated! ✨");
     setIsEditModalOpen(false);
   };
@@ -117,7 +155,8 @@ export default function CoursePage() {
                   <th className="p-6">Instructor</th>
                   <th className="p-6 text-center">Status</th>
                   <th className="p-6">Price</th>
-                  <th className="p-6 text-center font-black">Edit</th>
+                  {/* 👇 Admin holei Edit column header dekhabe */}
+                  {userData?.role === 'admin' && <th className="p-6 text-center font-black">Edit</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
@@ -133,18 +172,22 @@ export default function CoursePage() {
                           {course.status}
                         </span>
                         {course.status === 'Upcoming' && course.upcomingDate && (
-                           <p className="text-[10px] mt-1 font-bold text-blue-500 italic">Date: {course.upcomingDate}</p>
+                          <p className="text-[10px] mt-1 font-bold text-blue-500 italic">Date: {course.upcomingDate}</p>
                         )}
                       </td>
                       <td className="p-6 font-black text-[#011e40]">৳{course.price}</td>
-                      <td className="p-6 text-center">
-                        <button 
-                          onClick={() => { setEditingCourse(course); setIsEditModalOpen(true); }}
-                          className="p-3 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all cursor-pointer"
-                        >
-                          <FaPenToSquare />
-                        </button>
-                      </td>
+                      
+                      {/* 👇 Role check for Edit Button */}
+                      {userData?.role === 'admin' && (
+                        <td className="p-6 text-center">
+                          <button 
+                            onClick={() => { setEditingCourse(course); setIsEditModalOpen(true); }}
+                            className="p-3 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all cursor-pointer"
+                          >
+                            <FaPenToSquare />
+                          </button>
+                        </td>
+                      )}
                     </tr>
                   ))
                 )}
@@ -154,81 +197,83 @@ export default function CoursePage() {
         </div>
       </div>
 
-      {/* --- ADD NEW COURSE FORM --- */}
-      <div className="bg-white rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden">
-        <div className="p-10 border-b border-gray-50 bg-gray-50/30">
-          <h2 className="text-2xl font-black text-[#011e40] uppercase flex items-center gap-3">
-            <FaCirclePlus className="text-[#f1c40f]" /> Add New Course
-          </h2>
+      {/* --- ADD NEW COURSE FORM (Only for Admin) --- */}
+      {userData?.role === 'admin' && (
+        <div className="bg-white rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden">
+          <div className="p-10 border-b border-gray-50 bg-gray-50/30">
+            <h2 className="text-2xl font-black text-[#011e40] uppercase flex items-center gap-3">
+              <FaCirclePlus className="text-[#f1c40f]" /> Add New Course
+            </h2>
+          </div>
+
+          <form onSubmit={handleSubmit} className="p-10 grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-2">
+              <label className="text-xs font-black text-gray-500 uppercase ml-1">Course Title</label>
+              <input name="courseName" value={formData.courseName} type="text" onChange={handleChange} placeholder="Master in Next.js" className="w-full px-5 py-4 bg-gray-50 border-2 border-gray-100 rounded-[1.25rem] outline-none focus:border-[#f1c40f] font-bold text-[#011e40]" required />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-black text-blue-600 uppercase ml-1">Status & Start Date</label>
+              <div className="flex gap-2">
+                <select name="status" value={formData.status} onChange={handleChange} className="w-1/2 px-5 py-4 bg-gray-50 border-2 border-gray-100 rounded-[1.25rem] outline-none focus:border-[#f1c40f] font-black text-[#011e40]">
+                  <option value="Upcoming">Upcoming</option>
+                  <option value="Running">Running</option>
+                </select>
+                <input name="upcomingDate" value={formData.upcomingDate} onChange={handleChange} type="date" className="w-1/2 px-5 py-4 bg-blue-50 border-2 border-blue-100 rounded-[1.25rem] outline-none font-bold text-blue-600" disabled={formData.status !== 'Upcoming'} />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-black text-gray-500 uppercase ml-1">Instructor Image Link</label>
+              <input name="instructorPicLink" value={formData.instructorPicLink} type="url" onChange={handleChange} placeholder="URL here..." className="w-full px-5 py-4 bg-gray-50 border-2 border-gray-100 rounded-[1.25rem] outline-none font-bold" required />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-black text-gray-500 uppercase ml-1">Thumbnail Link</label>
+              <input name="thumbnailLink" value={formData.thumbnailLink} type="url" onChange={handleChange} placeholder="URL here..." className="w-full px-5 py-4 bg-gray-50 border-2 border-gray-100 rounded-[1.25rem] outline-none font-bold" required />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-black text-gray-500 uppercase ml-1">Instructor Name</label>
+              <input name="instructorName" value={formData.instructorName} type="text" onChange={handleChange} placeholder="Jhankar Mahbub" className="w-full px-5 py-4 bg-gray-50 border-2 border-gray-100 rounded-[1.25rem] outline-none font-bold" required />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-xs font-black text-gray-500 uppercase ml-1">Price (৳)</label>
+                <input name="price" value={formData.price} type="number" onChange={handleChange} placeholder="4500" className="w-full px-5 py-4 bg-gray-50 border-2 border-gray-100 rounded-[1.25rem] outline-none font-bold" required />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-black text-gray-500 uppercase ml-1">Seats</label>
+                <input name="seats" value={formData.seats} type="number" onChange={handleChange} placeholder="50" className="w-full px-5 py-4 bg-gray-50 border-2 border-gray-100 rounded-[1.25rem] outline-none font-bold" required />
+              </div>
+            </div>
+
+            <div className="md:col-span-2 space-y-2">
+              <label className="text-xs font-black text-gray-500 uppercase ml-1 flex items-center gap-2">
+                <FaFileLines className="text-[#f1c40f]" /> Detailed Description
+              </label>
+              <textarea 
+                name="description" 
+                value={formData.description} 
+                onChange={handleChange} 
+                rows="4" 
+                placeholder="What will students learn in this course?" 
+                className="w-full px-5 py-5 bg-gray-50 border-2 border-gray-100 rounded-[1.5rem] outline-none focus:border-[#f1c40f] font-medium text-[#011e40]"
+              ></textarea>
+            </div>
+
+            <div className="md:col-span-2 pt-4">
+              <button type="submit" className="w-full bg-[#011e40] py-5 rounded-[1.5rem] font-black text-[#f1c40f] shadow-xl hover:bg-[#023066] transition-all uppercase tracking-[0.2em] flex items-center justify-center gap-3 cursor-pointer">
+                Upload course 
+              </button> 
+            </div>
+          </form>
         </div>
+      )}
 
-        <form onSubmit={handleSubmit} className="p-10 grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="space-y-2">
-            <label className="text-xs font-black text-gray-500 uppercase ml-1">Course Title</label>
-            <input name="courseName" value={formData.courseName} type="text" onChange={handleChange} placeholder="Master in Next.js" className="w-full px-5 py-4 bg-gray-50 border-2 border-gray-100 rounded-[1.25rem] outline-none focus:border-[#f1c40f] font-bold text-[#011e40]" required />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-xs font-black text-blue-600 uppercase ml-1">Status & Start Date</label>
-            <div className="flex gap-2">
-              <select name="status" value={formData.status} onChange={handleChange} className="w-1/2 px-5 py-4 bg-gray-50 border-2 border-gray-100 rounded-[1.25rem] outline-none focus:border-[#f1c40f] font-black text-[#011e40]">
-                <option value="Upcoming">Upcoming</option>
-                <option value="Running">Running</option>
-              </select>
-              <input name="upcomingDate" value={formData.upcomingDate} onChange={handleChange} type="date" className="w-1/2 px-5 py-4 bg-blue-50 border-2 border-blue-100 rounded-[1.25rem] outline-none font-bold text-blue-600" disabled={formData.status !== 'Upcoming'} />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-xs font-black text-gray-500 uppercase ml-1">Instructor Image Link</label>
-            <input name="instructorPicLink" value={formData.instructorPicLink} type="url" onChange={handleChange} placeholder="URL here..." className="w-full px-5 py-4 bg-gray-50 border-2 border-gray-100 rounded-[1.25rem] outline-none font-bold" required />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-xs font-black text-gray-500 uppercase ml-1">Thumbnail Link</label>
-            <input name="thumbnailLink" value={formData.thumbnailLink} type="url" onChange={handleChange} placeholder="URL here..." className="w-full px-5 py-4 bg-gray-50 border-2 border-gray-100 rounded-[1.25rem] outline-none font-bold" required />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-xs font-black text-gray-500 uppercase ml-1">Instructor Name</label>
-            <input name="instructorName" value={formData.instructorName} type="text" onChange={handleChange} placeholder="Jhankar Mahbub" className="w-full px-5 py-4 bg-gray-50 border-2 border-gray-100 rounded-[1.25rem] outline-none font-bold" required />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-xs font-black text-gray-500 uppercase ml-1">Price (৳)</label>
-              <input name="price" value={formData.price} type="number" onChange={handleChange} placeholder="4500" className="w-full px-5 py-4 bg-gray-50 border-2 border-gray-100 rounded-[1.25rem] outline-none font-bold" required />
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-black text-gray-500 uppercase ml-1">Seats</label>
-              <input name="seats" value={formData.seats} type="number" onChange={handleChange} placeholder="50" className="w-full px-5 py-4 bg-gray-50 border-2 border-gray-100 rounded-[1.25rem] outline-none font-bold" required />
-            </div>
-          </div>
-
-          <div className="md:col-span-2 space-y-2">
-            <label className="text-xs font-black text-gray-500 uppercase ml-1 flex items-center gap-2">
-              <FaFileLines className="text-[#f1c40f]" /> Detailed Description
-            </label>
-            <textarea 
-              name="description" 
-              value={formData.description} 
-              onChange={handleChange} 
-              rows="4" 
-              placeholder="What will students learn in this course?" 
-              className="w-full px-5 py-5 bg-gray-50 border-2 border-gray-100 rounded-[1.5rem] outline-none focus:border-[#f1c40f] font-medium text-[#011e40]"
-            ></textarea>
-          </div>
-
-          <div className="md:col-span-2 pt-4">
-            <button type="submit" className="w-full bg-[#011e40] py-5 rounded-[1.5rem] font-black text-[#f1c40f] shadow-xl hover:bg-[#023066] transition-all uppercase tracking-[0.2em] flex items-center justify-center gap-3 cursor-pointer">
-              Upload course 
-            </button> 
-          </div>
-        </form>
-      </div>
-
-      {/* --- EDIT POPUP MODAL --- */}
-      {isEditModalOpen && editingCourse && (
+      {/* --- EDIT POPUP MODAL (Safe for Admin only) --- */}
+      {isEditModalOpen && userData?.role === 'admin' && editingCourse && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden">
             <div className="p-8 bg-[#011e40] flex justify-between items-center text-white">
