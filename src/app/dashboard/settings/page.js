@@ -16,6 +16,8 @@ export default function ProfileSettings() {
     lastEducation: "",
     summary: ""
   });
+
+  
   const [originalData, setOriginalData] = useState({}); // Database er data track rakhar jonno
   const [loading, setLoading] = useState(true);
 
@@ -132,7 +134,7 @@ export default function ProfileSettings() {
           <div className="bg-[#011e40] rounded-[32px] p-6 text-white overflow-hidden relative">
              <div className="absolute -right-4 -bottom-4 opacity-10 text-8xl text-[#f1c40f]"></div>
              <h4 className="text-[#f1c40f] text-[10px] font-black uppercase tracking-[0.2em] mb-4">Account Status</h4>
-             <p className="text-2xl font-black text-white capitalize">{userData.role || "Admin"}</p>
+             <p className="text-2xl font-black text-white capitalize">{userData.email || "Admin"}</p>
           </div>
         </div>
 
