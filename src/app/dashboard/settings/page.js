@@ -14,11 +14,11 @@ export default function ProfileSettings() {
     experience: "",
     course: "",
     lastEducation: "",
-    summary: ""
+    summary: "",
+    role: "" // Role state-e add kora holo
   });
 
-  
-  const [originalData, setOriginalData] = useState({}); // Database er data track rakhar jonno
+  const [originalData, setOriginalData] = useState({}); 
   const [loading, setLoading] = useState(true);
 
   // ১. Database theke data Fetch kora
@@ -27,7 +27,8 @@ export default function ProfileSettings() {
       const savedUser = localStorage.getItem("user");
       if (!savedUser) return;
       
-      const { email } = JSON.parse(savedUser).user || JSON.parse(savedUser);
+      const parsedUser = JSON.parse(savedUser);
+      const email = parsedUser.user?.email || parsedUser.email;
 
       try {
         const res = await fetch("/api/all-user");
@@ -36,7 +37,6 @@ export default function ProfileSettings() {
         if (result.success) {
           const matched = result.data.find(u => u.email === email);
           if (matched) {
-            // Null thakle faka string kore dewa jate input error na hoy
             const formattedData = {
               name: matched.name || "",
               profilePicture: matched.profilePicture || "",
@@ -45,10 +45,11 @@ export default function ProfileSettings() {
               course: matched.course || "",
               lastEducation: matched.lastEducation || "",
               summary: matched.summary || "",
-              email: matched.email // email change hobe na, just tracking er jonno
+              email: matched.email,
+              role: matched.role || "Member" // Role fetch kora holo
             };
             setUserData(formattedData);
-            setOriginalData(formattedData); // Original data save rakhlam
+            setOriginalData(formattedData);
           }
         }
       } catch (error) {
@@ -65,7 +66,6 @@ export default function ProfileSettings() {
     e.preventDefault();
     const toastId = toast.loading("Updating your profile...");
 
-    // Logic: User input dile oi data jabe, na dile original data-tai jabe
     const finalData = {
       ...userData,
       name: userData.name || originalData.name,
@@ -87,6 +87,7 @@ export default function ProfileSettings() {
       const result = await res.json();
       if (result.success) {
         toast.success("Profile updated successfully! ✨", { id: toastId });
+        setOriginalData(userData);
       } else {
         toast.error(result.message || "Failed to update", { id: toastId });
       }
@@ -101,7 +102,6 @@ export default function ProfileSettings() {
     <div className="max-w-6xl mx-auto p-4 md:p-8">
       <Toaster position="top-center" />
       
-      {/* Header Area */}
       <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <h1 className="text-3xl font-black text-[#011e40] uppercase tracking-tight">Profile Settings</h1>
@@ -111,13 +111,12 @@ export default function ProfileSettings() {
           form="profile-form"
           className="bg-[#f1c40f] text-[#011e40] px-10 py-4 rounded-2xl font-black shadow-xl hover:scale-105 active:scale-95 transition-all flex items-center gap-3"
         >
-        SAVE PROFILE
+          SAVE PROFILE
         </button>
       </div>
 
       <form id="profile-form" onSubmit={handleUpdate} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* LEFT CARD: User Info */}
         <div className="lg:col-span-1 space-y-6">
           <div className="bg-white rounded-[40px] p-8 border border-gray-100 shadow-sm text-center">
             <div className="w-32 h-32 rounded-[32px] overflow-hidden border-4 border-[#f1c40f] mx-auto shadow-2xl relative group">
@@ -134,15 +133,14 @@ export default function ProfileSettings() {
           <div className="bg-[#011e40] rounded-[32px] p-6 text-white overflow-hidden relative">
              <div className="absolute -right-4 -bottom-4 opacity-10 text-8xl text-[#f1c40f]"></div>
              <h4 className="text-[#f1c40f] text-[10px] font-black uppercase tracking-[0.2em] mb-4">Account Status</h4>
-             <p className="text-2xl font-black text-white capitalize">{userData.role || "Admin"}</p>
+             {/* Dynamic role ekhane dekhabe */}
+             <p className="text-2xl font-black text-white capitalize">{userData.role || "User"}</p>
           </div>
         </div>
 
-        {/* RIGHT CARD: All Input Fields */}
         <div className="lg:col-span-2 bg-white rounded-[40px] p-8 md:p-12 border border-gray-100 shadow-sm">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             
-            {/* Input Component Helper Logic */}
             {[
               { label: "Display Name", key: "name", icon: <FaUser />, placeholder: "Rakib Hassan" },
               { label: "Profile Picture URL", key: "profilePicture", icon: <FaImage />, placeholder: "https://example.com/photo.jpg" },
@@ -166,7 +164,6 @@ export default function ProfileSettings() {
               </div>
             ))}
 
-            {/* Summary (Full Width) */}
             <div className="md:col-span-2 space-y-2 pt-4">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Profile Summary</label>
               <div className="relative">
